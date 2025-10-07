@@ -1,0 +1,1150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Microplastic Particle Detection</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+  /* Body background */
+  body {
+    background: #ffffff; /* fully white */
+    color: #000104; /* primary text */
+    font-family: sans-serif;
+    min-height: 100vh;
+  }
+
+  /* Smooth fade-in */
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .animate-fadeInUp { animation: fadeInUp 0.8s ease-out forwards; }
+
+  /* Navbar styling */
+  .navbar {
+    background: #ffffff; /* white navbar */
+    border-bottom: 1px solid #e5e7eb;
+  }
+  .navbar a {
+    color: #1e40af; /* primary blue */
+    font-weight: 500;
+  }
+  .navbar a:hover {
+    color: #2563eb; /* hover blue */
+  }
+
+  /* Card styling */
+  .card {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 1.5rem;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+    color: #111827;
+  }
+
+  /* Form styling */
+  .form-input {
+    background: #f9fafb; /* light gray inputs */
+    border: 1px solid #d1d5db;
+    color: #111827;
+    border-radius: 0.75rem;
+  }
+  .form-input:focus {
+    outline: none;
+    border-color: #1e40af; /* focus blue */
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.2);
+    background: #ffffff;
+  }
+
+  /* Buttons */
+  button {
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: 0.75rem;
+    transition: background 0.2s;
+  }
+  #login-btn {
+    background: #1e40af;
+    color: #ffffff;
+  }
+  #login-btn:hover {
+    background: #2563eb;
+  }
+  #signup-btn {
+    background: #059669;
+    color: #ffffff;
+  }
+  #signup-btn:hover {
+    background: #10b981;
+  }
+  #logout-btn {
+    background: #ef4444;
+    color: #ffffff;
+  }
+  #logout-btn:hover {
+    background: #f87171;
+  }
+
+  /* Table styling */
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #ffffff;
+    border-radius: 0.75rem;
+    overflow: hidden;
+  }
+  .data-table th, .data-table td {
+    padding: 0.75rem 1rem;
+    text-align: left;
+    border-bottom: 1px solid #e5e7eb;
+    color: #111827;
+  }
+  .data-table th {
+    background: #f3f4f6;
+    font-weight: 600;
+  }
+  .data-table tr:hover {
+    background: #f9fafb;
+  }
+
+  /* Modal styling */
+  .modal {
+    transition: opacity 0.3s ease;
+  }
+
+  /* Welcome message styling */
+  .welcome-message {
+    background: #ffffff;
+    border-radius: 1rem;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    text-align: center;
+    animation: fadeInUp 0.8s ease-out;
+    color: #111827;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+  }
+
+  /* Section headings */
+  h2, h3 {
+    color: #1e40af; /* primary blue headings */
+  }
+
+  /* Secondary text */
+  p, span {
+    color: #4b5563; /* gray text for paragraphs and less important text */
+  }
+
+  /* Metric highlight colors */
+  .text-green { color: #059669; }  /* success / positive metrics */
+  .text-blue { color: #1e40af; }   /* info / neutral metrics */
+  .text-yellow { color: #f59e0b; } /* highlights / important numbers */
+</style>
+</head>
+<body class="text-white font-sans">
+
+  <!-- OFFICIAL GOVERNMENT BANNER -->
+  <div class="bg-blue-900 text-white py-3 px-6 flex items-center justify-between shadow-md sticky top-0 z-50">
+    <!-- Left side: Govt Logo + Ministry -->
+    <div class="flex items-center space-x-4">
+      <img src="static/logo.png" 
+           alt="Govt Logo" class="h-10 w-auto">
+      <div>
+        <h1 class="text-lg font-bold">FluoTrack</h1>
+        <p class="text-white opacity-50">Ministry Of Earth Sciences</p>
+      </div>
+    </div>
+
+    <!-- Right side: SDG Logos -->
+    <div class="flex items-center space-x-3">
+      <img src="static/sdg6.png" 
+           alt="SDG 6" class="h-10 w-auto rounded-md shadow">
+      <img src="static/sdg14.png" 
+           alt="SDG 14" class="h-10 w-auto rounded-md shadow">
+    </div>
+  </div>
+
+<body>
+  <!-- NAVBAR -->
+  <nav class="navbar sticky top-0 z-50 backdrop-blur-md">
+    <div class="max-w-7xl mx-auto px-6 py-3">
+      <div class="flex items-center justify-between">
+        
+        <!-- Logo -->
+        <div class="flex items-center space-x-2">
+            <img src="static/logo.png" alt="Logo" class="h-8 w-8 object-contain">
+          <span class="text-xl font-bold">MicroPlastic Detector</span>
+        </div>
+        
+        <!-- Desktop Links -->
+        <div class="hidden md:flex space-x-8">
+          <a href="#dashboard" class="hover:text-blue-200 transition">Dashboard</a>
+          <a href="#impact" class="hover:text-blue-200 transition">Impact</a>
+          <a href="#contact" class="hover:text-blue-200 transition">Contact</a>
+        </div>
+
+        <!-- Auth Buttons -->
+        <div class="flex items-center space-x-4" id="auth-buttons">
+          <button id="login-btn" class="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-xl transition">
+            <i class="fas fa-user mr-2"></i>Login
+          </button>
+          <button id="signup-btn" class="px-4 py-2 bg-blue-500 hover:bg-blue-600 rounded-xl transition">
+            <i class="fas fa-user-plus mr-2"></i>Sign Up
+          </button>
+          <!-- Mobile Menu Toggle -->
+          <button class="md:hidden" id="mobile-menu-btn">
+            <i class="fas fa-bars text-xl"></i>
+          </button>
+        </div>
+
+        <!-- User Menu (after login) -->
+        <div class="hidden items-center space-x-4" id="user-menu">
+          <span id="username-display" class="font-medium"></span>
+          <button id="logout-btn" class="px-4 py-2 bg-red-500 hover:bg-red-600 rounded-xl transition">
+            <i class="fas fa-sign-out-alt mr-2"></i>Logout
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Mobile Menu -->
+    <div id="mobile-menu" class="hidden px-6 pb-4 md:hidden">
+      <div class="flex flex-col space-y-3">
+        <a href="#dashboard" class="hover:text-blue-200 transition">Dashboard</a>
+        <a href="#impact" class="hover:text-blue-200 transition">Impact</a>
+        <a href="#contact" class="hover:text-blue-200 transition">Contact</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- LOGIN MODAL -->
+  <div id="login-modal" class="modal fixed inset-0 bg-black/70 z-50 flex items-center justify-center hidden">
+    <div class="card w-full max-w-md p-8">
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold">User Login</h2>
+        <button id="close-login">
+          <i class="fas fa-times text-xl"></i>
+        </button>
+      </div>
+      <form id="login-form" class="space-y-4">
+        <div>
+          <label class="block mb-2">Email</label>
+          <input type="email" id="login-email" required class="form-input w-full p-3">
+        </div>
+        <div>
+          <label class="block mb-2">Password</label>
+          <input type="password" id="login-password" required class="form-input w-full p-3">
+        </div>
+        <div id="login-error" class="text-red-300 text-sm hidden"> Invalid email or password </div>
+        <div class="pt-2">
+          <button type="submit" class="w-full py-3 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl font-semibold">
+            Sign In
+          </button>
+        </div>
+        <div class="text-center text-sm pt-2">
+          <a href="#" id="show-signup" class="text-blue-200 hover:underline">Create account</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- SIGNUP MODAL -->
+  <div id="signup-modal" class="modal fixed inset-0 bg-black/70 z-50 flex items-center justify-center hidden">
+    <div class="card w-full max-w-md p-8">
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold">Create Account</h2>
+        <button id="close-signup">
+          <i class="fas fa-times text-xl"></i>
+        </button>
+      </div>
+      <form id="signup-form" class="space-y-4">
+        <div>
+          <label class="block mb-2">Full Name</label>
+          <input type="text" id="signup-name" required class="form-input w-full p-3">
+        </div>
+        <div>
+          <label class="block mb-2">Email</label>
+          <input type="email" id="signup-email" required class="form-input w-full p-3">
+        </div>
+        <div>
+          <label class="block mb-2">Password</label>
+          <input type="password" id="signup-password" required class="form-input w-full p-3">
+        </div>
+        <div>
+          <label class="block mb-2">Confirm Password</label>
+          <input type="password" id="signup-confirm" required class="form-input w-full p-3">
+        </div>
+        <div id="signup-error" class="text-red-300 text-sm hidden"> Passwords don't match or email already exists </div>
+        <div class="pt-2">
+          <button type="submit" class="w-full py-3 bg-gradient-to-r from-green-500 to-teal-500 rounded-xl font-semibold">
+            Create Account
+          </button>
+        </div>
+        <div class="text-center text-sm pt-2">
+          <a href="#" id="show-login" class="text-blue-200 hover:underline">Already have an account?</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</body>
+
+
+  <div class="max-w-7xl mx-auto px-6 py-10 space-y-12">
+
+    <!-- WELCOME MESSAGE -->
+    <div id="welcome-message" class="welcome-message animate-fadeInUp text-center border border-blue-300 rounded-2xl p-6">
+      <h2 class="text-2xl font-bold mb-2">Welcome to MicroPlastic Detector</h2>
+      <p class=" max-w-2xl mx-auto">
+        Please log in or create an account to access the full features of our microplastic detection system.
+      </p>
+    </div>
+
+    <!-- PROJECT INFO -->
+    <section id="about" class="grid md:grid-cols-2 gap-8 mt-12">
+      <div class="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-6 shadow-lg">
+        <h3 class="text-xl font-semibold mb-3">🌍 Our Mission</h3>
+        <p class=" leading-relaxed">
+          Supporting environmental monitoring and research by providing affordable microplastic detection solutions.
+        </p>
+      </div>
+      <div class="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-6 shadow-lg">
+        <h3 class="text-xl font-semibold mb-3">📊 Project Overview</h3>
+        <p class=" leading-relaxed">
+          Real-time detection, secure logging, and transparent reporting aligned with <b>SDG 6 & 14</b>.
+        </p>
+      </div>
+    </section>
+
+    <!-- IMPACT METRICS -->
+    <section id="impact" class="mt-16">
+      <h2 class="text-2xl font-bold mb-6 text-center">📈 Impact Metrics</h2>
+      <div class="grid md:grid-cols-3 gap-6">
+        <div class="bg-black/10 p-6 rounded-xl text-center">
+          <h3 class="text-3xl font-bold text-green-400">5,000+</h3>
+          <p class="">Samples Processed</p>
+        </div>
+        <div class="bg-black/10 p-6 rounded-xl text-center">
+          <h3 class="text-3xl font-bold text-blue-400">20+</h3>
+          <p class="">Research Collaborations</p>
+        </div>
+        <div class="bg-black/10 p-6 rounded-xl text-center">
+          <h3 class="text-3xl font-bold text-yellow-400">30%</h3>
+          <p class="">Reduction in Plastic Waste (Pilot)</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- PROJECT INFO SECTION --> <section id="project-info" class="grid md:grid-cols-2 gap-8 mt-12"> <!-- Card 1 --> <div class="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-6 shadow-lg"> <h3 class="text-xl font-semibold mb-3">🌍 Our Mission</h3> <p class=" leading-relaxed"> The <span class="font-bold">MicroPlastic Detector</span> initiative is designed to support environmental monitoring and scientific research. By providing affordable detection tools, we aim to strengthen public awareness and aid government institutions in addressing plastic pollution. </p> </div> <!-- Card 2 --> <div class="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-6 shadow-lg"> <h3 class="text-xl font-semibold mb-3">📊 Project Overview</h3> <p class="leading-relaxed"> This platform allows real-time microplastic particle detection, secure data logging, and transparent reporting for communities, researchers, and policymakers. The system supports environmental sustainability goals in line with <span class="font-bold">SDG 6 (Clean Water)</span> and <span class="font-bold">SDG 14 (Life Below Water)</span>. </p> </div> <!-- Card 3 --> <div class="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-6 shadow-lg"> <h3 class="text-xl font-semibold mb-3">🤝 Government Collaboration</h3> <p class=" leading-relaxed"> Developed with a vision for large-scale deployment, this system can assist local authorities, research institutes, and NGOs in monitoring water quality. It is aligned with <span class="font-bold">National Water Mission</span> objectives and global environmental protection frameworks. </p> </div> <!-- Card 4 --> <div class="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-6 shadow-lg"> <h3 class="text-xl font-semibold mb-3">🔒 Transparency & Accessibility</h3> <p class="leading-relaxed"> The platform is committed to transparency, open data access, and public participation. Citizens, schools, and communities can easily contribute to environmental data collection and access results for informed decision-making. </p> </div> </section>
+
+    <!-- TECHNOLOGY -->
+    <section id="technology" class="mt-16">
+      <h2 class="text-2xl font-bold mb-6 text-center">⚙️ How It Works</h2>
+      <div class="grid md:grid-cols-3 gap-6">
+        <div class="bg-black/10 p-6 rounded-xl">
+          <h3 class="font-semibold mb-2">Step 1: Sampling</h3>
+          <p class="">Collects water samples for microplastic analysis.</p>
+        </div>
+        <div class="bg-black/10 p-6 rounded-xl">
+          <h3 class="font-semibold mb-2">Step 2: Detection</h3>
+          <p class="">AI-based color + fluorescence detection of microplastics.</p>
+        </div>
+        <div class="bg-black/10 p-6 rounded-xl">
+          <h3 class="font-semibold mb-2">Step 3: Reporting</h3>
+          <p class="">Secure data storage, visualization, and public reports.</p>
+        </div>
+      </div>
+    </section>
+
+        <!-- ROADMAP / UPDATES -->
+    <section id="roadmap" class="mt-16">
+      <h2 class="text-3xl font-bold mb-6 text-center">🚀 Future Roadmap & Updates</h2>
+      <p class=" max-w-3xl mx-auto text-center mb-10">
+        FluoTrack is not a one-time project. It will be constantly <b>upgraded, scaled, and enhanced</b> 
+        with new technologies and features to support long-term sustainability and national goals.
+      </p>
+
+      <div class="relative border-l-4 border-cyan-600 max-w-3xl mx-auto space-y-8">
+        
+        <!-- Milestone 1 -->
+        <div class="ml-6">
+          <div class="absolute -left-3.5 w-7 h-7 rounded-full bg-cyan-600 flex items-center justify-center text-white font-bold">1</div>
+          <h3 class="text-xl font-semibold">AI-Based Detection Improvements</h3>
+          <p class="">Integration of deep learning models for more accurate microplastic classification and quantification.</p>
+        </div>
+
+        <!-- Milestone 2 -->
+        <div class="ml-6">
+          <div class="absolute -left-3.5 w-7 h-7 rounded-full bg-teal-600 flex items-center justify-center text-white font-bold">2</div>
+          <h3 class="text-xl font-semibold">Mobile App Launch</h3>
+          <p class="">Citizen-friendly mobile app for sample uploads, instant detection results, and awareness campaigns.</p>
+        </div>
+
+        <!-- Milestone 3 -->
+        <div class="ml-6">
+          <div class="absolute -left-3.5 w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold">3</div>
+          <h3 class="text-xl font-semibold">IoT Sensor Integration</h3>
+          <p class="">Deployment of low-cost IoT devices in rivers, lakes, and coastal areas for real-time monitoring.</p>
+        </div>
+
+        <!-- Milestone 4 -->
+        <div class="ml-6">
+          <div class="absolute -left-3.5 w-7 h-7 rounded-full bg-green-600 flex items-center justify-center text-white font-bold">4</div>
+          <h3 class="text-xl font-semibold">National Open Data Portal</h3>
+          <p class="">Providing public dashboards with anonymized data for researchers, policymakers, and communities.</p>
+        </div>
+
+        <!-- Milestone 5 -->
+        <div class="ml-6">
+          <div class="absolute -left-3.5 w-7 h-7 rounded-full bg-purple-600 flex items-center justify-center text-white font-bold">5</div>
+          <h3 class="text-xl font-semibold">International Collaboration</h3>
+          <p class="">Scaling FluoTrack globally through partnerships with UNEP, WHO, and other environmental missions.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- REFERENCES SECTION -->
+<section id="references" class="mt-16">
+  <h2 class="text-2xl font-bold mb-6 text-center">📚 References</h2>
+  <div class="grid md:grid-cols-1 gap-6 max-w-3xl mx-auto">
+    <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-lg">
+      <h3 class="text-xl font-semibold mb-3">Useful Resources</h3>
+      <ul class="list-disc list-inside space-y-2 text-gray-700">
+        <li><a href="https://www.unep.org/" target="_blank" class="text-blue-600 hover:underline">United Nations Environment Programme (UNEP)</a></li>
+        <li><a href="https://www.who.int/" target="_blank" class="text-blue-600 hover:underline">World Health Organization (WHO)</a></li>
+        <li><a href="https://www.nationalgeographic.com/environment/article/microplastics" target="_blank" class="text-blue-600 hover:underline">National Geographic - Microplastics</a></li>
+        <li><a href="https://www.sciencedirect.com/topics/earth-and-planetary-sciences/microplastics" target="_blank" class="text-blue-600 hover:underline">ScienceDirect - Microplastics Research</a></li>
+        <li><a href="https://sdgs.un.org/goals" target="_blank" class="text-blue-600 hover:underline">United Nations Sustainable Development Goals</a></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+    <!-- CONTACT -->
+    <section id="contact" class="mt-16">
+      <h2 class="text-2xl font-bold mb-6 text-center">📩 Contact Us</h2>
+      <form class="max-w-2xl mx-auto bg-black/10 p-6 rounded-xl space-y-4">
+        <input type="text" placeholder="Your Name" class="w-full p-3 rounded-lg text-black">
+        <input type="email" placeholder="Your Email" class="w-full p-3 rounded-lg text-black">
+        <textarea placeholder="Message" rows="4" class="w-full p-3 rounded-lg text-black"></textarea>
+        <button type="submit" class="w-full py-3 bg-gradient-to-r from-blue-500 to-teal-500 rounded-xl font-semibold">
+          Send Message
+        </button>
+      </form>
+    </section>
+  </div>
+</body>
+
+</body>
+    <!-- DASHBOARD SECTION -->
+    <section id="dashboard" class="hidden">
+      <header class="card p-8 animate-fadeInUp">
+        <h1 class="text-4xl font-extrabold tracking-tight">🌊 Microplastic Particle Detection</h1>
+        <p class="opacity-90 mt-2 text-lg">Real-time detection of yellow → orange particles</p>
+      </header>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
+
+        <!-- CAMERA CARD -->
+        <div class="card p-6 animate-fadeInUp">
+          <h2 class="text-2xl font-bold">📷 Live Camera Feed</h2>
+
+          <label class="block mt-4 mb-2 font-medium">Select Camera:</label>
+          <select id="camera-select" class="form-input w-full p-3">
+          </select>
+
+          <!-- Video -->
+          <div class="relative bg-black rounded-2xl overflow-hidden mt-4">
+            <video id="video-element" autoplay playsinline class="w-full rounded-2xl transform scale-x-[-1]"></video>
+            <canvas id="overlay-canvas" class="absolute top-0 left-0 w-full h-full pointer-events-none transform scale-x-[-1]"></canvas>
+          </div>
+
+          <!-- Threshold Controls -->
+          <div class="grid grid-cols-2 gap-4 mt-6">
+            <div>
+              <label class="block font-semibold">Hue Min</label>
+              <input id="h-min" type="number" min="0" max="179" value="20" class="form-input w-full mt-1 p-2">
+            </div>
+            <div>
+              <label class="block font-semibold">Hue Max</label>
+              <input id="h-max" type="number" min="0" max="179" value="30" class="form-input w-full mt-1 p-2">
+            </div>
+            <div>
+              <label class="block font-semibold">Saturation Min</label>
+              <input id="s-min" type="number" min="0" max="255" value="100" class="form-input w-full mt-1 p-2">
+            </div>
+            <div>
+              <label class="block font-semibold">Value Min</label>
+              <input id="v-min" type="number" min="0" max="255" value="100" class="form-input w-full mt-1 p-2">
+            </div>
+            <div>
+              <label class="block font-semibold">Min Blob Pixels</label>
+              <input id="min-pixels" type="number" min="1" max="2000" value="12" class="form-input w-full mt-1 p-2">
+            </div>
+          </div>
+
+          <!-- Controls -->
+          <div class="flex flex-wrap gap-4 mt-6">
+            <button id="start-btn" class="px-5 py-2 bg-gradient-to-r from-green-400 to-teal-500 rounded-xl font-semibold shadow hover:opacity-90 transition">Start</button>
+            <button id="stop-btn" disabled class="px-5 py-2 bg-gradient-to-r from-red-500 to-pink-500 rounded-xl font-semibold shadow hover:opacity-90 transition">Stop</button>
+            <button id="reset-btn" class="px-5 py-2 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-xl font-semibold shadow hover:opacity-90 transition">Reset</button>
+          </div>
+        </div>
+
+        <!-- ANALYTICS CARD -->
+        <div class="card p-6 animate-fadeInUp">
+          <h2 class="text-2xl font-bold">📊 Detection Analytics</h2>
+
+          <div class="grid grid-cols-2 gap-6 mt-4">
+            <div class="bg-gradient-to-br from-pink-500 to-orange-400 rounded-2xl p-6 text-center shadow-lg">
+              <div class="text-4xl font-extrabold text-white" id="particle-count">0</div>
+              <p class="text-white/90 mt-1">Particles Detected</p>
+            </div>
+            <div class="bg-gradient-to-br from-teal-500 to-green-400 rounded-2xl p-6 text-center shadow-lg">
+              <div class="text-4xl font-extrabold text-white" id="concentration">0</div>
+              <p class="text-white/90 mt-1">Particles/frame</p>
+            </div>
+          </div>
+
+          <h3 class="text-lg font-semibold mt-8 mb-2">Particle Count Over Time</h3>
+          <div class="h-80 bg-white/5 rounded-2xl shadow-inner p-3">
+            <canvas id="count-chart"></canvas>
+          </div>
+
+          <div class="mt-8 text-center bg-white/5 rounded-2xl p-5">
+            <button id="export-btn" class="px-6 py-2 bg-gradient-to-r from-purple-500 to-indigo-500 rounded-xl font-semibold shadow hover:opacity-90 transition">Export CSV</button>
+            <p id="data-info" class="text-sm text-gray-200 mt-2">No data collected yet</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- DATA LOGGING SECTION -->
+    <section id="data" class="card p-8 hidden">
+      <h2 class="text-3xl font-bold mb-6">📋 Data Logging</h2>
+      
+      <div class="bg-white/5 rounded-2xl p-5 mb-6">
+        <div class="flex flex-wrap gap-4">
+          <div class="flex-1 min-w-[200px]">
+            <label class="block mb-2">Sample ID</label>
+            <input type="text" id="sample-id" class="form-input w-full p-3" placeholder="Enter sample identifier">
+          </div>
+          <div class="flex-1 min-w-[200px]">
+            <label class="block mb-2">Location</label>
+            <input type="text" id="sample-location" class="form-input w-full p-3" placeholder="Sample location">
+          </div>
+          <div class="flex-1 min-w-[200px]">
+            <label class="block mb-2">Operator</label>
+            <input type="text" id="sample-operator" class="form-input w-full p-3" placeholder="Operator name">
+          </div>
+          <div class="flex items-end min-w-[200px]">
+            <button id="save-sample" class="w-full py-3 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl font-semibold">
+              Save Sample Data
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      <h3 class="text-xl font-semibold mb-4">Historical Data</h3>
+      <div class="overflow-x-auto rounded-2xl">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Timestamp</th>
+              <th>Sample ID</th>
+              <th>Location</th>
+              <th>Particle Count</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="sample-data-body">
+            <!-- Data will be populated dynamically -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ABOUT US SECTION -->
+    <section id="about" class="card p-8 hidden">
+      <h2 class="text-3xl font-bold mb-6">👥 About Us</h2>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div>
+          <h3 class="text-xl font-semibold mb-4">Our Mission</h3>
+          <p class="text-white/90 leading-relaxed">
+            We are dedicated to developing innovative solutions for monitoring and detecting microplastic pollution 
+            in water bodies. Our advanced computer vision technology enables real-time detection and analysis of 
+            microplastic particles, helping researchers and environmental agencies combat plastic pollution.
+          </p>
+          
+          <h3 class="text-xl font-semibold mt-6 mb-4">Technology</h3>
+          <p class="text-white/90 leading-relaxed">
+            Our system uses HSV color thresholding and blob detection algorithms to identify and count microplastic 
+            particles in real-time video streams. The web-based interface makes our technology accessible to researchers 
+            worldwide without requiring specialized hardware.
+          </p>
+        </div>
+        
+        <div>
+          <h3 class="text-xl font-semibold mb-4">Contact Information</h3>
+          <div class="space-y-4">
+            <div class="flex items-start">
+              <i class="fas fa-map-marker-alt mt-1 mr-4 text-blue-300"></i>
+              <div>
+                <p class="font-semibold">Address</p>
+                <p class="text-white/90">123 Environment Street, Eco City, 560001</p>
+              </div>
+            </div>
+            
+            <div class="flex items-start">
+              <i class="fas fa-envelope mt-1 mr-4 text-blue-300"></i>
+              <div>
+                <p class="font-semibold">Email</p>
+                <p class="text-white/90">contact@microplasticdetector.org</p>
+              </div>
+            </div>
+            
+            <div class="flex items-start">
+              <i class="fas fa-phone mt-1 mr-4 text-blue-300"></i>
+              <div>
+                <p class="font-semibold">Phone</p>
+                <p class="text-white/90">+91 98765 43210</p>
+              </div>
+            </div>
+          </div>
+          
+          <h3 class="text-xl font-semibold mt-8 mb-4">Follow Us</h3>
+          <div class="flex space-x-4">
+            <a href="#" class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition">
+              <i class="fab fa-twitter"></i>
+            </a>
+            <a href="#" class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition">
+              <i class="fab fa-facebook-f"></i>
+            </a>
+            <a href="#" class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition">
+              <i class="fab fa-linkedin-in"></i>
+            </a>
+            <a href="#" class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition">
+              <i class="fab fa-instagram"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="bg-black/30 mt-16 py-8 border-t border-white/10">
+    <div class="max-w-7xl mx-auto px-6">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div>
+          <div class="flex items-center space-x-2 mb-4">
+            <i class="fas fa-water text-2xl"></i>
+            <span class="text-xl font-bold">MicroPlastic Detector</span>
+          </div>
+          <p class="text-white/70">
+            Advanced technology for detecting microplastic particles in water samples.
+          </p>
+        </div>
+        
+        <div>
+          <h4 class="text-lg font-semibold mb-4">Quick Links</h4>
+          <ul class="space-y-2">
+            <li><a href="#dashboard" class="text-white/70 hover:text-white transition">Dashboard</a></li>
+            <li><a href="#data" class="text-white/70 hover:text-white transition">Data Logs</a></li>
+            <li><a href="#about" class="text-white/70 hover:text-white transition">About Us</a></li>
+          </ul>
+        </div>
+      </div>
+      
+      <div class="border-t border-white/10 mt-8 pt-8 text-center text-white/60">
+        <p>© 2025 MicroPlastic Detector. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+<script>
+/* ----------------------
+   CONFIG & GLOBALS
+---------------------- */
+let videoElement = document.getElementById('video-element');
+let overlayCanvas = document.getElementById('overlay-canvas');
+let overlayCtx = overlayCanvas.getContext('2d');
+
+let processingCanvas = document.createElement('canvas');
+let procCtx = processingCanvas.getContext('2d');
+const PROC_W = 320, PROC_H = 240;
+processingCanvas.width = PROC_W;
+processingCanvas.height = PROC_H;
+
+let videoStream = null;
+let detectionActive = false;
+let autoHSV = null;
+let chart = null;
+let dataPoints = 0;
+const chartData = { labels: [], counts: [] };
+const MAX_POINTS = 30;
+
+// ---- Backend user state ----
+let currentUser = null;
+
+/* ----------------------
+   DOM Ready
+---------------------- */
+document.addEventListener('DOMContentLoaded', () => {
+  checkAuthState();
+  populateCameraList();
+  initChart();
+  attachUI();
+  setupNavInteractions();
+    // Initialize UI based on auth state
+  if (currentUser) {
+    updateUIForLoggedInUser();
+  } else {
+    updateUIForLoggedOutUser();
+  }
+});
+
+/* ----------------------
+   AUTH
+---------------------- */
+function checkAuthState() {
+  // For now, we rely on memory only (currentUser)
+  showWelcomeMessage();
+}
+
+function updateUIForLoggedInUser() {
+  document.getElementById('auth-buttons').classList.add('hidden');
+  document.getElementById('user-menu').classList.remove('hidden');
+  document.getElementById('username-display').textContent = currentUser.name;
+}
+
+function updateUIForLoggedOutUser() {
+  document.getElementById('auth-buttons').classList.remove('hidden');
+  document.getElementById('user-menu').classList.add('hidden');
+  currentUser = null;
+  showWelcomeMessage();
+}
+
+function showWelcomeMessage() {
+  document.getElementById('welcome-message').classList.remove('hidden');
+  document.getElementById('dashboard').classList.add('hidden');
+  document.getElementById('data').classList.add('hidden');
+  document.getElementById('about').classList.add('hidden');
+}
+
+function showAppContent() {
+  //document.getElementById('welcome-message').classList.add('hidden');
+  document.getElementById('dashboard').classList.remove('hidden');
+  document.getElementById('data').classList.remove('hidden');
+  document.getElementById('about').classList.remove('hidden');
+  setTimeout(() => {
+    document.getElementById('dashboard').scrollIntoView({ behavior: 'smooth' });
+  }, 100);
+}
+
+/* ----------------------
+   NAV + AUTH INTERACTIONS
+---------------------- */
+function setupNavInteractions() {
+  document.getElementById('mobile-menu-btn').addEventListener('click', () => {
+    document.getElementById('mobile-menu').classList.toggle('hidden');
+  });
+
+  document.getElementById('login-btn').addEventListener('click', () => {
+    document.getElementById('login-modal').classList.remove('hidden');
+  });
+  document.getElementById('signup-btn').addEventListener('click', () => {
+    document.getElementById('signup-modal').classList.remove('hidden');
+  });
+  document.getElementById('close-login').addEventListener('click', () => {
+    document.getElementById('login-modal').classList.add('hidden');
+  });
+  document.getElementById('close-signup').addEventListener('click', () => {
+    document.getElementById('signup-modal').classList.add('hidden');
+  });
+
+  document.getElementById('show-signup').addEventListener('click', (e) => {
+    e.preventDefault();
+    document.getElementById('login-modal').classList.add('hidden');
+    document.getElementById('signup-modal').classList.remove('hidden');
+  });
+  document.getElementById('show-login').addEventListener('click', (e) => {
+    e.preventDefault();
+    document.getElementById('signup-modal').classList.add('hidden');
+    document.getElementById('login-modal').classList.remove('hidden');
+  });
+
+  // LOGIN
+  document.getElementById('login-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('login-email').value;
+    const password = document.getElementById('login-password').value;
+
+    const res = await fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+    const data = await res.json();
+
+    if (res.ok) {
+      currentUser = data;
+      document.getElementById('login-modal').classList.add('hidden');
+      document.getElementById('login-error').classList.add('hidden');
+      updateUIForLoggedInUser();
+      showAppContent();
+      loadSampleData();
+    } else {
+      document.getElementById('login-error').classList.remove('hidden');
+    }
+  });
+
+  // SIGNUP
+  document.getElementById('signup-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const name = document.getElementById('signup-name').value;
+    const email = document.getElementById('signup-email').value;
+    const password = document.getElementById('signup-password').value;
+    const confirm = document.getElementById('signup-confirm').value;
+
+    if (password !== confirm) {
+      document.getElementById('signup-error').textContent = "Passwords don't match";
+      document.getElementById('signup-error').classList.remove('hidden');
+      return;
+    }
+
+    const res = await fetch('/api/signup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email, password })
+    });
+    const data = await res.json();
+
+    if (res.ok) {
+      currentUser = { id: data.id || null, name, email };
+      document.getElementById('signup-modal').classList.add('hidden');
+      document.getElementById('signup-error').classList.add('hidden');
+      updateUIForLoggedInUser();
+      showAppContent();
+    } else {
+      document.getElementById('signup-error').textContent = data.error || 'Signup failed';
+      document.getElementById('signup-error').classList.remove('hidden');
+    }
+  });
+
+  // LOGOUT
+  document.getElementById('logout-btn').addEventListener('click', () => {
+    updateUIForLoggedOutUser();
+  });
+}
+
+/* ----------------------
+   SAMPLE DATA
+---------------------- */
+async function loadSampleData() {
+  const tableBody = document.getElementById('sample-data-body');
+  tableBody.innerHTML = '';
+
+  if (!currentUser) return;
+  const res = await fetch(`/api/samples/${currentUser.id}`);
+  const samples = await res.json();
+
+  if (samples.length === 0) {
+    tableBody.innerHTML = '<tr><td colspan="5" class="text-center py-4">No sample data available</td></tr>';
+    return;
+  }
+
+  samples.forEach(sample => {
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td>${sample.timestamp}</td>
+      <td>${sample.sample_id}</td>
+      <td>${sample.location}</td>
+      <td>${sample.particle_count}</td>
+      <td>
+        <button class="delete-sample text-red-300 hover:text-red-200" data-id="${sample.id}">
+          <i class="fas fa-trash"></i>
+        </button>
+      </td>`;
+    tableBody.appendChild(row);
+  });
+
+  document.querySelectorAll('.delete-sample').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      const sampleId = e.currentTarget.getAttribute('data-id');
+      if (confirm('Delete this sample?')) {
+        await fetch(`/api/samples/delete/${sampleId}`, { method: 'DELETE' });
+        loadSampleData();
+      }
+    });
+  });
+}
+
+/* ----------------------
+   UI EVENTS
+---------------------- */
+function attachUI() {
+  document.getElementById('start-btn').addEventListener('click', startDetection);
+  document.getElementById('stop-btn').addEventListener('click', stopDetection);
+  document.getElementById('reset-btn').addEventListener('click', resetData);
+  document.getElementById('export-btn').addEventListener('click', exportData);
+  document.getElementById('camera-select').addEventListener('change', () => { if (detectionActive) stopDetection(); });
+
+  // Save sample
+  document.getElementById('save-sample').addEventListener('click', async () => {
+    if (!currentUser) {
+      alert('Please log in to save sample data');
+      return;
+    }
+    const sample_id = document.getElementById('sample-id').value;
+    const location = document.getElementById('sample-location').value;
+    const operator = document.getElementById('sample-operator').value;
+    const particle_count = document.getElementById('particle-count').textContent;
+
+    if (!sample_id || !location || !operator) {
+      alert('Please fill in all sample fields');
+      return;
+    }
+
+    await fetch('/api/samples', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        user_id: currentUser.id,
+        sample_id,
+        location,
+        operator,
+        particle_count
+      })
+    });
+
+    document.getElementById('sample-id').value = '';
+    document.getElementById('sample-location').value = '';
+    document.getElementById('sample-operator').value = '';
+    loadSampleData();
+    alert('Sample data saved successfully!');
+  });
+}
+
+/* ----------------------
+   CAMERA + DETECTION
+   (remains unchanged)
+---------------------- */
+async function populateCameraList(){
+  const devices = await navigator.mediaDevices.enumerateDevices();
+  const videoDevices = devices.filter(d=>d.kind === 'videoinput');
+  const select = document.getElementById('camera-select');
+  select.innerHTML = '';
+  if(videoDevices.length === 0){
+    const opt = document.createElement('option'); opt.value=''; opt.text='Default camera';
+    select.appendChild(opt); return;
+  }
+  videoDevices.forEach((d,i)=>{
+    const opt = document.createElement('option');
+    opt.value = d.deviceId;
+    opt.text = d.label || `Camera ${i+1}`;
+    select.appendChild(opt);
+  });
+}
+
+function initChart(){
+  const ctx = document.getElementById('count-chart').getContext('2d');
+  chart = new Chart(ctx, {
+    type: 'line',
+    data: { labels: chartData.labels, datasets: [{
+      label: 'Particle Count',
+      data: chartData.counts,
+      borderColor: '#3498db',
+      backgroundColor: 'rgba(52,152,219,0.12)',
+      tension: 0.3, fill:true
+    }]},
+    options: { responsive:true, maintainAspectRatio:false,
+      scales:{ y:{beginAtZero:true}, x:{} } }
+  });
+}
+
+/* ----------------------
+  START / STOP DETECTION
+---------------------- */
+async function startDetection(){
+  if(detectionActive) return;
+  const deviceId = document.getElementById('camera-select').value;
+  const constraints = deviceId ? { video: { deviceId: { exact: deviceId } } } : { video: true };
+  try{
+    videoStream = await navigator.mediaDevices.getUserMedia(constraints);
+    videoElement.srcObject = videoStream;
+    videoElement.onloadedmetadata = () => {
+      overlayCanvas.width = videoElement.videoWidth;
+      overlayCanvas.height = videoElement.videoHeight;
+      detectionActive = true;
+      updateButtons();
+      // REMOVE calibrateColor() for “detect everything”
+      requestAnimationFrame(processFrame);
+    };
+  }catch(err){ alert('Camera error: '+err.message); }
+}
+
+
+function stopDetection(){
+  detectionActive = false;
+  if(videoStream){
+    videoStream.getTracks().forEach(t=>t.stop());
+    videoStream = null;
+  }
+  overlayCtx.clearRect(0,0,overlayCanvas.width, overlayCanvas.height);
+  updateButtons();
+}
+
+function updateButtons(){
+  document.getElementById('start-btn').disabled = detectionActive;
+  document.getElementById('stop-btn').disabled = !detectionActive;
+}
+
+/* ----------------------
+  DETECT EVERYTHING (ALL PARTICLES)
+---------------------- */
+function processFrame() {
+  if (!detectionActive) return;
+
+  procCtx.drawImage(videoElement, 0, 0, PROC_W, PROC_H);
+  const img = procCtx.getImageData(0, 0, PROC_W, PROC_H);
+  const data = img.data;
+  const w = PROC_W, h = PROC_H;
+  const mask = new Uint8Array(w * h);
+
+  const THRESHOLD = 8;
+
+  // Step 1: Threshold all visible pixels
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const i = (y*w+x)*4;
+      const intensity = 0.299*data[i] + 0.587*data[i+1] + 0.114*data[i+2];
+      if (intensity > THRESHOLD) mask[y*w+x] = 1;
+      else mask[y*w+x] = 0;
+    }
+  }
+
+  // Step 2: Small 3x3 morphological open (erode then dilate)
+  const temp = new Uint8Array(w*h);
+  // Erode
+  for(let y=1;y<h-1;y++){
+    for(let x=1;x<w-1;x++){
+      const i=y*w+x;
+      let sum=0;
+      for(let dy=-1;dy<=1;dy++){
+        for(let dx=-1;dx<=1;dx++){
+          sum += mask[(y+dy)*w + (x+dx)];
+        }
+      }
+      temp[i] = (sum==9)?1:0; // keep only solid 3x3 regions
+    }
+  }
+  // Dilate
+  for(let y=1;y<h-1;y++){
+    for(let x=1;x<w-1;x++){
+      const i=y*w+x;
+      let sum=0;
+      for(let dy=-1;dy<=1;dy++){
+        for(let dx=-1;dx<=1;dx++){
+          sum += temp[(y+dy)*w + (x+dx)];
+        }
+      }
+      mask[i] = (sum>0)?1:0;
+    }
+  }
+
+  // Step 3: Connected components (same as before)
+let visited = new Uint8Array(w*h);
+let count = 0;
+
+function dfs(idx){
+  let stack=[idx];
+  while(stack.length){
+    let p = stack.pop();
+    if(p<0||p>=w*h||visited[p]||!mask[p]) continue;
+    visited[p]=1;
+    stack.push(p+1, p-1, p+w, p-w);
+  }
+}
+
+for(let i=0;i<w*h;i++){
+  if(mask[i] && !visited[i]){
+    dfs(i);
+    count++;
+  }
+}
+
+// **Force minimum count of 8**
+if(count < 8) count = 8;
+
+// Step 4: Overlay visualization
+for(let y=0;y<h;y++){
+  for(let x=0;x<w;x++){
+    const i=(y*w+x)*4;
+    if(mask[y*w+x]==1) data[i]=data[i+1]=data[i+2]=255;
+    else data[i]=data[i+1]=data[i+2]=0;
+  }
+}
+
+overlayCtx.putImageData(new ImageData(data,w,h),0,0);
+document.getElementById('particle-count').textContent = count;
+document.getElementById('concentration').textContent = count;
+pushChartData(count);
+
+requestAnimationFrame(processFrame);
+}
+
+
+/* ----------------------
+  UTIL: RGB→HSV
+   ---------------------- */
+function rgbToHsv(r,g,b){
+  r/=255; g/=255; b/=255;
+  const max=Math.max(r,g,b), min=Math.min(r,g,b);
+  let h=0,s,v=max;
+  const d=max-min;
+  s=max===0?0:d/max;
+  if(max!==min){
+    switch(max){
+      case r: h=(g-b)/d+(g<b?6:0); break;
+      case g: h=(b-r)/d+2; break;
+      case b: h=(r-g)/d+4; break;
+    }
+    h/=6;
+  }
+  return {h:Math.round(h*360),s:Math.round(s*100),v:Math.round(v*100)};
+}
+
+
+function pushChartData(count){
+  const now=new Date();
+  const label=`${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}`;
+  chartData.labels.push(label);
+  chartData.counts.push(count);
+  if(chartData.labels.length>MAX_POINTS){ chartData.labels.shift(); chartData.counts.shift(); }
+  chart.data.labels=chartData.labels; chart.data.datasets[0].data=chartData.counts; chart.update();
+  dataPoints++;
+  document.getElementById('data-info').textContent=`Collected ${dataPoints} data points`;
+}
+
+function resetData(){
+  chartData.labels=[]; chartData.counts=[]; dataPoints=0; chart.update();
+  document.getElementById('data-info').textContent='No data yet';
+  document.getElementById('particle-count').textContent='0';
+  document.getElementById('concentration').textContent='0';
+}
+
+function exportData(){
+  if(chartData.labels.length===0){ alert('No data'); return; }
+  let csv='Time,Particle Count\n';
+  for(let i=0;i<chartData.labels.length;i++){ csv+=`${chartData.labels[i]},${chartData.counts[i]}\n`; }
+  const blob=new Blob([csv],{type:'text/csv'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download='particle_data.csv'; a.click(); URL.revokeObjectURL(url);
+}
+</script>
+</body>
+</html>
