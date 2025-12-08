@@ -3,188 +3,1004 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Microplastic Particle Detection</title>
+  <title>FluoTrack ~ Elevators07</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
-  /* Body background */
-  body {
-    background: #ffffff; /* fully white */
-    color: #000104; /* primary text */
-    font-family: sans-serif;
-    min-height: 100vh;
-  }
+:root{
+  --bg-1: #05060a;
+  --bg-2: #071427;
+  --panel: rgba(255,255,255,0.03);
+  --panel-2: rgba(255,255,255,0.02);
+  --glass-border: rgba(255,255,255,0.06);
+  --soft-border: rgba(255,255,255,0.03);
+  --accent-cyan: #00e5ff;
+  --accent-violet: #8a6cff;
+  --accent-teal: #2fe7b6;
+  --muted: #9aa6b2;
+  --text-main: #e8f4ff;
+  --card-shadow: 0 20px 50px rgba(2,8,20,0.7);
+  --glow: 0 6px 28px rgba(54,144,255,0.12), inset 0 1px 0 rgba(255,255,255,0.02);
+  --glass-blur: 10px;
+  --transition: 320ms cubic-bezier(.2,.9,.25,1);
+}
 
-  /* Smooth fade-in */
-  @keyframes fadeInUp {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-  .animate-fadeInUp { animation: fadeInUp 0.8s ease-out forwards; }
+/* Page background + subtle animated nebula */
+html,body{
+  height:100%;
+  margin:0;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  color:var(--text-main);
+  background:
+    radial-gradient(600px 300px at 10% 10%, rgba(138,108,255,0.06), transparent 8%),
+    radial-gradient(700px 350px at 90% 90%, rgba(0,229,255,0.04), transparent 8%),
+    linear-gradient(180deg, var(--bg-1), var(--bg-2));
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  -webkit-tap-highlight-color: transparent;
+  perspective:1400px;
+  overflow-x:hidden;
+}
 
-  /* Navbar styling */
-  .navbar {
-    background: #ffffff; /* white navbar */
-    border-bottom: 1px solid #e5e7eb;
-  }
-  .navbar a {
-    color: #1e40af; /* primary blue */
-    font-weight: 500;
-  }
-  .navbar a:hover {
-    color: #2563eb; /* hover blue */
-  }
+/* Subtle keyframes */
+@keyframes floatY {
+  0% { transform: translateY(0) translateZ(0); }
+  50% { transform: translateY(-8px) translateZ(12px); }
+  100% { transform: translateY(0) translateZ(0); }
+}
+@keyframes pop {
+  0% { opacity:0; transform: translateY(12px) scale(.98) rotateX(6deg); }
+  100% { opacity:1; transform: translateY(0) scale(1) rotateX(0); }
+}
+@keyframes pulseGlow {
+  0% { box-shadow: 0 6px 24px rgba(0,229,255,0.06); }
+  50% { box-shadow: 0 20px 60px rgba(138,108,255,0.08); }
+  100% { box-shadow: 0 6px 24px rgba(0,229,255,0.06); }
+}
 
-  /* Card styling */
-  .card {
-    background: #ffffff;
-    border: 1px solid #e5e7eb;
-    border-radius: 1.5rem;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.05);
-    color: #111827;
-  }
+/* NAV / HEADER - premium glass + gradient border */
+.bg-blue-900{
+  background: linear-gradient(90deg, rgba(6,18,45,0.9), rgba(8,22,40,0.88));
+  border-bottom: 1px solid var(--soft-border);
+  box-shadow: 0 8px 30px rgba(2,8,20,0.6);
+  transform-style: preserve-3d;
+}
+.bg-blue-900 img{ filter: drop-shadow(0 6px 20px rgba(0,229,255,0.06)); transform: translateZ(18px); }
+.bg-blue-900 h1{ color:var(--text-main); transform: translateZ(20px); }
 
-  /* Form styling */
-  .form-input {
-    background: #f9fafb; /* light gray inputs */
-    border: 1px solid #d1d5db;
-    color: #111827;
-    border-radius: 0.75rem;
-  }
-  .form-input:focus {
-    outline: none;
-    border-color: #1e40af; /* focus blue */
-    box-shadow: 0 0 0 3px rgba(59,130,246,0.2);
-    background: #ffffff;
-  }
+/* Navbar glass */
+.navbar{
+  background: linear-gradient(180deg, rgba(255,255,255,0.018), rgba(255,255,255,0.01));
+  border: 1px solid rgba(255,255,255,0.03);
+  backdrop-filter: blur(var(--glass-blur)) saturate(120%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(120%);
+  box-shadow: 0 10px 30px rgba(2,6,20,0.55);
+  transition: box-shadow var(--transition), transform var(--transition);
+  transform-style: preserve-3d;
+}
+.navbar .max-w-7xl{ transform: translateZ(8px); }
 
-  /* Buttons */
-  button {
-    font-weight: 600;
-    cursor: pointer;
-    border-radius: 0.75rem;
-    transition: background 0.2s;
-  }
-  #login-btn {
-    background: #1e40af;
-    color: #ffffff;
-  }
-  #login-btn:hover {
-    background: #2563eb;
-  }
-  #signup-btn {
-    background: #059669;
-    color: #ffffff;
-  }
-  #signup-btn:hover {
-    background: #10b981;
-  }
-  #logout-btn {
-    background: #ef4444;
-    color: #ffffff;
-  }
-  #logout-btn:hover {
-    background: #f87171;
-  }
+.navbar a{
+  color: rgba(230,245,255,0.9);
+  font-weight:600;
+  letter-spacing: .2px;
+  transition: color 180ms ease, transform var(--transition);
+}
+.navbar a:hover{ color: var(--accent-cyan); transform: translateY(-3px) translateZ(8px); }
 
-  /* Table styling */
-  .data-table {
-    width: 100%;
-    border-collapse: collapse;
-    background: #ffffff;
-    border-radius: 0.75rem;
-    overflow: hidden;
-  }
-  .data-table th, .data-table td {
-    padding: 0.75rem 1rem;
-    text-align: left;
-    border-bottom: 1px solid #e5e7eb;
-    color: #111827;
-  }
-  .data-table th {
-    background: #f3f4f6;
-    font-weight: 600;
-  }
-  .data-table tr:hover {
-    background: #f9fafb;
-  }
+/* Buttons - refined 3D glass buttons */
+button{
+  border: none;
+  outline: none;
+  cursor: pointer;
+  font-weight: 700;
+  transition: transform var(--transition), box-shadow var(--transition), opacity 160ms ease;
+  transform-style: preserve-3d;
+  will-change: transform;
+  color:var(--text-main);
+}
+button:focus{ box-shadow: 0 10px 30px rgba(0,229,255,0.08); }
 
-  /* Modal styling */
-  .modal {
-    transition: opacity 0.3s ease;
-  }
+/* Specific auth buttons */
+#login-btn, #signup-btn, #logout-btn{
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  border-radius: 10px;
+  padding: .55rem .9rem;
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 8px 22px rgba(2,6,20,0.45), inset 0 -2px 6px rgba(255,255,255,0.02);
+  backdrop-filter: blur(6px);
+}
+#signup-btn{ background: linear-gradient(90deg, rgba(122,70,255,0.14), rgba(0,229,255,0.08)); }
+#login-btn:hover, #signup-btn:hover, #logout-btn:hover{
+  transform: translateY(-6px) translateZ(18px) scale(1.02);
+  box-shadow: 0 28px 70px rgba(2,8,30,0.6), 0 0 28px rgba(0,229,255,0.03);
+}
+#login-btn:active, #signup-btn:active, #logout-btn:active{
+  transform: translateY(-2px) translateZ(8px);
+}
 
-  /* Welcome message styling */
-  .welcome-message {
-    background: #ffffff;
-    border-radius: 1rem;
-    padding: 1.5rem;
-    margin-bottom: 2rem;
-    text-align: center;
-    animation: fadeInUp 0.8s ease-out;
-    color: #111827;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.05);
-  }
+/* Card base - glassmorphism + neon rim highlight */
+.card{
+  background: linear-gradient(180deg, rgba(255,255,255,0.018), rgba(255,255,255,0.01));
+  border-radius: 14px;
+  border: 1px solid var(--glass-border);
+  padding: 1rem;
+  transition: transform var(--transition), box-shadow var(--transition), filter var(--transition);
+  transform-style: preserve-3d;
+  animation: pop .38s cubic-bezier(.2,.9,.25,1) both;
+  box-shadow: var(--card-shadow);
+  position: relative;
+  overflow: hidden;
+  backface-visibility: hidden;
+}
 
-  /* Section headings */
-  h2, h3 {
-    color: #1e40af; /* primary blue headings */
-  }
+/* Neon gradient rim using pseudo-element */
+.card::after{
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(120deg, rgba(0,229,255,0.06), rgba(138,108,255,0.06));
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  mix-blend-mode: overlay;
+  opacity: 0.9;
+  transform: translateZ(-20px);
+}
 
-  /* Secondary text */
-  p, span {
-    color: #4b5563; /* gray text for paragraphs and less important text */
-  }
+/* Enhanced hover */
+.card:hover{
+  transform: translateY(-12px) translateZ(36px) rotateX(.6deg);
+  box-shadow: 0 38px 90px rgba(2,8,30,0.8);
+  filter: contrast(1.03) saturate(1.05);
+}
 
-  /* Metric highlight colors */
-  .text-green { color: #059669; }  /* success / positive metrics */
-  .text-blue { color: #1e40af; }   /* info / neutral metrics */
-  .text-yellow { color: #f59e0b; } /* highlights / important numbers */
+/* floating card animation */
+.card.float{ animation: floatY 6.5s ease-in-out infinite; }
+
+/* Forms - soft glass inputs */
+.form-input{
+  background: linear-gradient(180deg, rgba(6,12,24,0.5), rgba(6,12,24,0.35));
+  border: 1px solid rgba(255,255,255,0.03);
+  color: var(--text-main);
+  border-radius: 10px;
+  transition: box-shadow var(--transition), transform var(--transition), border-color var(--transition);
+  box-shadow: 0 8px 22px rgba(2,6,20,0.5), inset 0 1px 0 rgba(255,255,255,0.02);
+  padding: .6rem;
+}
+.form-input::placeholder{ color: rgba(255,255,255,0.35); }
+
+.form-input:focus{
+  outline: none;
+  border-color: rgba(0,229,255,0.45);
+  box-shadow: 0 18px 56px rgba(0,229,255,0.06), 0 6px 20px rgba(2,8,20,0.6);
+  transform: translateY(-4px) translateZ(12px);
+  background: rgba(255,255,255,0.02);
+}
+
+/* Table styling */
+.data-table{
+  background: linear-gradient(180deg, rgba(255,255,255,0.012), rgba(255,255,255,0.006));
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.03);
+  box-shadow: 0 18px 50px rgba(2,6,20,0.55);
+}
+.data-table th, .data-table td{
+  padding: .9rem 1.1rem;
+  color: rgba(220,235,255,0.95);
+  border-bottom: 1px dashed rgba(255,255,255,0.02);
+  font-size: .95rem;
+  vertical-align: middle;
+}
+.data-table thead th{
+  background: linear-gradient(180deg, rgba(255,255,255,0.01), rgba(0,0,0,0.02));
+  color: var(--muted);
+  font-weight:700;
+}
+.data-table tbody tr:hover td{
+  background: rgba(0,229,255,0.02);
+  transform: translateZ(6px);
+}
+
+/* Modal overlay and card */
+.modal{
+  transition: opacity 260ms ease, visibility 260ms ease;
+  backdrop-filter: blur(8px) saturate(120%);
+  -webkit-backdrop-filter: blur(8px) saturate(120%);
+}
+.modal .card{
+  max-width:520px;
+  width:100%;
+  transform-origin:center center;
+  animation: pop .32s cubic-bezier(.2,.9,.25,1);
+}
+
+/* Welcome message - prominent */
+.welcome-message{
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  border-radius: 18px;
+  padding: 2rem;
+  color:var(--text-main);
+  box-shadow: 0 26px 80px rgba(2,6,20,0.7);
+  border: 1px solid var(--glass-border);
+  transform-style: preserve-3d;
+  animation: pop .45s cubic-bezier(.2,.9,.25,1) both;
+}
+
+/* Headings and text */
+h2,h3{ color: #eaf6ff; text-shadow: 0 6px 18px rgba(0,0,0,0.5); }
+p, span{ color: var(--muted); }
+
+/* Metric badges */
+.bg-black\/10{
+  background: linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.005));
+  border: 1px solid var(--glass-border);
+  transition: transform var(--transition), box-shadow var(--transition);
+  padding: 1rem;
+}
+.bg-black\/10:hover{
+  transform: translateY(-8px) translateZ(18px);
+  box-shadow: 0 30px 70px rgba(2,8,30,0.65), 0 0 48px rgba(138,108,255,0.03);
+}
+
+/* Video frame elevated */
+.relative.bg-black.rounded-2xl{
+  background: linear-gradient(180deg, rgba(0,0,0,0.48), rgba(5,10,20,0.35));
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,0.03);
+  box-shadow: 0 36px 90px rgba(2,6,20,0.75), inset 0 2px 10px rgba(255,255,255,0.02);
+  transform-style: preserve-3d;
+  overflow:hidden;
+}
+video#video-element, canvas#overlay-canvas{
+  display:block;
+  width:100%;
+  height:auto;
+  transform: translateZ(30px);
+  will-change: transform;
+  border-radius: 12px;
+}
+canvas#overlay-canvas{ position:absolute; top:0; left:0; mix-blend-mode:screen; pointer-events:none; }
+
+/* Charts + analytics */
+.bg-gradient-to-br{
+  border-radius: 12px;
+  overflow: hidden;
+}
+.bg-gradient-to-br .text-4xl{ text-shadow: 0 6px 22px rgba(0,0,0,0.6); }
+
+/* Controls buttons */
+.px-5.py-2{
+  box-shadow: 0 12px 36px rgba(2,6,22,0.55);
+  border-radius: 10px;
+  transition: transform var(--transition), box-shadow var(--transition);
+}
+.px-5.py-2:hover{
+  transform: translateY(-10px) translateZ(18px);
+  box-shadow: 0 34px 90px rgba(2,8,30,0.72);
+}
+
+/* Small utilities */
+.rounded-xl{ border-radius: 10px; }
+.rounded-2xl{ border-radius: 14px; }
+
+/* Footer */
+footer{
+  background: linear-gradient(180deg, rgba(0,0,0,0.34), rgba(4,8,16,0.28));
+  border-top: 1px solid rgba(255,255,255,0.03);
+  color: #cfe7ff;
+  padding-bottom: 2.25rem;
+}
+footer a{ color: rgba(207,233,255,0.9); }
+
+/* subtle neon accent animations for important buttons */
+#start-btn{ position:relative; overflow:visible; }
+#start-btn::before{
+  content:"";
+  position:absolute;
+  inset:-1px;
+  border-radius:inherit;
+  background: linear-gradient(90deg, rgba(47,231,182,0.06), rgba(0,229,255,0.06));
+  filter: blur(10px);
+  opacity:0.9;
+  z-index:-1;
+}
+#export-btn{ transition: box-shadow 450ms ease; }
+#export-btn:hover{ animation: pulseGlow 2.2s infinite; }
+
+/* responsive tweak for touch devices */
+@media (hover: none){
+  .card:hover, .bg-black\/10:hover, .px-5.py-2:hover { transform: none; box-shadow: 0 8px 22px rgba(2,6,20,0.45); }
+}
+
+/* small utilities for animation classes used in HTML (keeps same names) */
+.animate-fadeInUp{ animation: pop .48s cubic-bezier(.2,.9,.25,1) both; }
+
+/* Accessibility: focus outlines */
+button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible{
+  outline: 2px solid rgba(0,229,255,0.18);
+  outline-offset: 3px;
+  border-radius: 8px;
+}
+/* ======================================================
+   🚀 HOLOGRAM 3D SCI-TECH UI (NASA/ISRO Hybrid)
+   Deep blue + cyan hologram + true 3D depth
+   Only overrides existing selectors
+   Paste at END of <style>
+====================================================== */
+
+/* GLOBAL BACKGROUND – DARK HOLOGRAM LAYERING */
+html, body {
+  background: 
+    radial-gradient(circle at 20% 20%, rgba(0,180,255,0.25), transparent 60%),
+    radial-gradient(circle at 80% 80%, rgba(0,110,255,0.20), transparent 60%),
+    linear-gradient(180deg, #0a1323, #0d162b, #0c192f) !important;
+  color: #e8f3ff !important;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+}
+
+/* NAVBAR – INDUSTRIAL HOLOGRAM BAR */
+.navbar {
+  background: linear-gradient(90deg, #041020, #06203a) !important;
+  border-bottom: 1px solid rgba(0,255,255,0.12) !important;
+  box-shadow:
+    0 8px 25px rgba(0, 150, 255, 0.15),
+    inset 0 0 20px rgba(0,180,255,0.08) !important;
+}
+
+/* NAVBAR LINKS – CYAN HOLOGRAM TEXT */
+.navbar a {
+  color: #b9dcff !important;
+  font-weight: 600;
+}
+.navbar a:hover {
+  color: #00d4ff !important;
+  text-shadow: 0 0 12px rgba(0,200,255,0.75);
+}
+
+/* TITLE BAR – HOLOGRAM ACCENTED */
+.bg-blue-900 {
+  background: linear-gradient(90deg, #06203a, #0a345b) !important;
+  box-shadow:
+    0 4px 18px rgba(0, 200, 255, 0.20),
+    inset 0 0 35px rgba(0,140,255,0.15) !important;
+}
+
+/* -------------------------
+   GLASS + HOLOGRAM 3D CARDS
+---------------------------- */
+
+.card {
+  background: rgba(8, 20, 35, 0.65) !important;
+  border: 1px solid rgba(0, 200, 255, 0.28) !important;
+  border-radius: 18px !important;
+
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+
+  box-shadow:
+    0 18px 55px rgba(0,140,255,0.18),
+    0 4px 15px rgba(0,0,0,0.5),
+    inset 0 0 22px rgba(0,200,255,0.12) !important;
+
+  transform: translateZ(25px) scale(1);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+/* 3D HOVER – THIS IS THE DEPTH YOU WANT */
+.card:hover {
+  transform: translateY(-10px) translateZ(50px) scale(1.03);
+  box-shadow:
+    0 35px 90px rgba(0,200,255,0.32),
+    0 0 25px rgba(0,255,255,0.45),
+    inset 0 0 35px rgba(0,200,255,0.25) !important;
+}
+
+/* HOLOGRAM GLOW EDGE */
+.card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 18px;
+  border: 1px solid rgba(0,255,255,0.25);
+  box-shadow:
+    0 0 25px rgba(0,200,255,0.25),
+    inset 0 0 20px rgba(0,150,255,0.18);
+  pointer-events: none;
+}
+
+/* WELCOME MESSAGE BOX – HOLOGRAM PANEL */
+.welcome-message {
+  background: rgba(10, 25, 45, 0.7) !important;
+  border: 1px solid rgba(0,200,255,0.25) !important;
+  color: #dff6ff !important;
+
+  box-shadow:
+    0 22px 55px rgba(0,180,255,0.18),
+    inset 0 0 35px rgba(0,100,150,0.22) !important;
+}
+
+/* SECTION TITLES – HOLOGRAM HEADERS */
+section h2, .impact-header {
+  color: #66e3ff !important;
+  text-shadow:
+    0 0 12px rgba(0,200,255,0.55),
+    0 0 25px rgba(0,150,255,0.35);
+  font-weight: 700;
+}
+
+/* --------------------
+   METRIC STAT CARDS
+--------------------- */
+
+.bg-black\/10 {
+  background: rgba(10, 28, 50, 0.75) !important;
+  border: 1px solid rgba(0,200,255,0.22) !important;
+
+  box-shadow:
+    0 14px 40px rgba(0,150,255,0.20),
+    inset 0 0 25px rgba(0,200,255,0.18) !important;
+
+  border-radius: 18px !important;
+  backdrop-filter: blur(10px) !important;
+}
+
+/* Numbers with hologram glow */
+.bg-black\/10 h3 {
+  font-weight: 800 !important;
+  font-size: 2rem !important;
+  text-shadow: 0 0 12px rgba(0,255,255,0.45);
+}
+
+/* Data colors */
+.bg-black\/10:nth-child(1) h3 { color: #00ffae !important; }
+.bg-black\/10:nth-child(2) h3 { color: #00c8ff !important; }
+.bg-black\/10:nth-child(3) h3 { color: #ffe36a !important; }
+
+/* -------------------------
+   CAMERA FRAME (HOLOGRAM)
+-------------------------- */
+
+.relative.bg-black.rounded-2xl {
+  background: rgba(10,30,55,0.65) !important;
+  border: 1px solid rgba(0,200,255,0.25) !important;
+
+  box-shadow:
+    0 12px 50px rgba(0,140,255,0.25),
+    inset 0 0 35px rgba(0,200,255,0.18) !important;
+
+  border-radius: 20px !important;
+  backdrop-filter: blur(12px) !important;
+}
+
+/* --------------------
+   INPUTS – LIT FIELDS
+---------------------- */
+
+.form-input {
+  background: rgba(12,25,45,0.75) !important;
+  border: 1px solid rgba(0,200,255,0.25) !important;
+  color: #d6f7ff !important;
+
+  box-shadow:
+    0 0 15px rgba(0,150,255,0.18),
+    inset 0 0 20px rgba(0,100,150,0.15) !important;
+}
+
+.form-input:focus {
+  border-color: #00d2ff !important;
+  box-shadow:
+    0 0 25px rgba(0,255,255,0.45),
+    inset 0 0 25px rgba(0,200,255,0.25) !important;
+}
+
+/* ----------------------
+   BUTTONS – HOLOGRAM 3D
+----------------------- */
+
+button,
+#login-btn,
+#signup-btn,
+#logout-btn {
+  background: rgba(5,20,40,0.85) !important;
+  border: 1px solid rgba(0,200,255,0.35) !important;
+  border-radius: 14px !important;
+
+  color: #e7faff !important;
+  font-weight: 600 !important;
+
+  box-shadow:
+    0 10px 30px rgba(0,200,255,0.25),
+    inset 0 0 20px rgba(0,150,255,0.22) !important;
+
+  transition: transform 0.2s, box-shadow 0.25s;
+}
+
+button:hover,
+#login-btn:hover,
+#signup-btn:hover,
+#logout-btn:hover {
+  transform: translateY(-6px) scale(1.05);
+  box-shadow:
+    0 18px 60px rgba(0,255,255,0.35),
+    0 0 35px rgba(0,255,255,0.55),
+    inset 0 0 30px rgba(0,150,255,0.25) !important;
+}
+
+/* FOOTER */
+footer {
+  background: linear-gradient(180deg, #07101d, #0d1f33) !important;
+  border-top: 1px solid rgba(0,200,255,0.18) !important;
+  color: #9ccfff !important;
+}
+
+/* ==========================================================
+   🧩 MICROPLASTIC FLOATING PARTICLES (Overrides Tailwind)
+   Lightweight, GPU-accelerated, zero JS required.
+========================================================== */
+
+#particle-container {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  z-index: 0; 
+  pointer-events: none;
+}
+
+/* Individual microplastic particle */
+.microplastic {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  background: rgba(0, 255, 255, 0.35);
+  border-radius: 2px;
+  filter: blur(1px);
+  box-shadow: 0 0 6px rgba(0,255,255,0.6);
+  animation: float-up linear infinite;
+  opacity: 0.7;
+}
+
+/* Animation upward like floating debris */
+@keyframes float-up {
+  0% {
+    transform: translateY(0) translateX(0) scale(1);
+  }
+  50% {
+    transform: translateY(-50px) translateX(10px) scale(1.1);
+  }
+  100% {
+    transform: translateY(-120vh) translateX(-15px) scale(0.9);
+  }
+}
+
+/* Variation classes (auto-generated look) */
+.microplastic:nth-child(3n) {
+  background: rgba(0, 200, 255, 0.45);
+  width: 4px; height: 4px;
+  box-shadow: 0 0 4px rgba(0,200,255,0.7);
+  animation-duration: 12s;
+}
+
+.microplastic:nth-child(4n) {
+  background: rgba(150, 255, 255, 0.55);
+  width: 8px; height: 3px;
+  border-radius: 3px;
+  animation-duration: 18s;
+}
+
+.microplastic:nth-child(5n) {
+  background: rgba(80, 200, 255, 0.42);
+  width: 5px; height: 7px;
+  box-shadow: 0 0 7px rgba(80,200,255,0.7);
+  animation-duration: 22s;
+}
+
+.microplastic:nth-child(odd) {
+  animation-duration: 15s;
+}
+
+.microplastic:nth-child(even) {
+  animation-duration: 20s;
+}
+
+/* ================================
+   Section Microplastic Particles
+================================ */
+.section-particles {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  z-index: 0;
+}
+.section-particles span {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  background: #4ac3ff;
+  border-radius: 2px;
+  opacity: .6;
+  filter: blur(1px);
+  animation: floatParticle 12s infinite linear;
+}
+.section-particles span:nth-child(odd) {
+  background: #7ee7ff;
+  width: 4px;
+  height: 4px;
+}
+
+@keyframes floatParticle {
+  from { transform: translateY(120vh) translateX(0); }
+  to   { transform: translateY(-20vh) translateX(40px); }
+}
+
+/* Random particle positions */
+.section-particles span:nth-child(1) { left: 5%;  animation-duration: 11s; }
+.section-particles span:nth-child(2) { left: 15%; animation-duration: 14s; }
+.section-particles span:nth-child(3) { left: 28%; animation-duration: 13s; }
+.section-particles span:nth-child(4) { left: 40%; animation-duration: 16s; }
+.section-particles span:nth-child(5) { left: 52%; animation-duration: 12s; }
+.section-particles span:nth-child(6) { left: 65%; animation-duration: 15s; }
+.section-particles span:nth-child(7) { left: 75%; animation-duration: 17s; }
+.section-particles span:nth-child(8) { left: 85%; animation-duration: 13s; }
+.section-particles span:nth-child(9) { left: 92%; animation-duration: 11s; }
+.section-particles span:nth-child(10){ left: 98%; animation-duration: 16s; }
+
+
+/* ================================
+   Gallery Container (Parallax)
+================================ */
+.gallery-container {
+  display: flex;
+  gap: 30px;
+  overflow-x: auto;
+  padding: 10px 0 20px;
+  scroll-snap-type: x mandatory;
+  z-index: 1;
+}
+
+.gallery-container::-webkit-scrollbar { height: 8px; }
+.gallery-container::-webkit-scrollbar-thumb {
+  background: #4ac3ff88;
+  border-radius: 12px;
+}
+
+/* AUTO-SCROLL Animation */
+.auto-scroll-gallery {
+  animation: autoScroll 35s linear infinite;
+}
+@keyframes autoScroll {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-60%); }
+}
+
+/* ================================
+   3D Image Cards
+================================ */
+.gallery-card {
+  position: relative;
+  min-width: 260px;
+  height: 340px;
+  border-radius: 22px;
+  overflow: hidden;
+  scroll-snap-align: center;
+  background: #0b1628;
+  border: 1px solid #4ac3ff44;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 0 25px #4ac3ff22;
+  transition: transform .4s ease, box-shadow .4s ease;
+  z-index: 1;
+}
+
+.gallery-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: .8s ease;
+  opacity: 0.95;
+}
+
+/* Light shine reflection */
+.gallery-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(60deg, transparent 20%, #ffffff22 50%, transparent 80%);
+  transform: translateX(-150%);
+  transition: .8s ease;
+}
+
+.gallery-card:hover::after {
+  transform: translateX(150%);
+}
+
+/* Glow behind image */
+.glow {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle, #4ac3ff33, transparent 70%);
+  opacity: 0;
+  transition: .4s;
+}
+.gallery-card:hover .glow {
+  opacity: 1;
+}
+
+/* 3D TILT */
+.gallery-card:hover {
+  transform: perspective(700px) rotateY(12deg) rotateX(5deg) scale(1.1);
+  box-shadow: 0 0 40px #4ac3ff55;
+}
+.gallery-card:hover img {
+  transform: scale(1.15);
+}
+
+/* Title Label */
+.gallery-card span {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  padding: 10px;
+  text-align: center;
+  background: #00000066;
+  color: #4ac3ff;
+  font-size: 1rem;
+  backdrop-filter: blur(4px);
+}
+
+
+/* ================================
+   Fade In Effect
+================================ */
+.fade-in {
+  opacity: 0;
+  transform: translateY(20px);
+  animation: fadeInAnim 1.3s forwards ease-out;
+}
+@keyframes fadeInAnim {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ============================
+      FINAL FLIP CARD STYLE
+=============================*/
+.flip-card {
+  width: 260px;
+  height: 340px;
+  perspective: 1200px;
+  margin: 0 auto;
+}
+
+.flip-inner {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.9s ease;
+}
+
+.flip-card:hover .flip-inner {
+  transform: rotateY(180deg);
+}
+
+/* FRONT */
+.flip-front, .flip-back {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  border-radius: 22px;
+  overflow: hidden;
+  box-shadow: 0 0 25px #4ac3ff33;
+  border: 1px solid #4ac3ff44;
+}
+
+/* FRONT IMAGE CARD */
+.flip-front {
+  background: #0b1628;
+}
+.flip-front img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.flip-front span {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  padding: 10px;
+  text-align: center;
+  background: #00000066;
+  color: #4ac3ff;
+  backdrop-filter: blur(5px);
+  font-weight: 600;
+}
+
+/* BACK SIDE */
+.flip-back {
+  background: #0b1b2f;
+  transform: rotateY(180deg);
+  padding: 20px;
+  color: #4ac3ff;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 10px;
+}
+
+.flip-back h3 {
+  margin-bottom: 10px;
+  font-size: 1.2rem;
+  color: #4ac3ff;
+}
+
+.flip-back ul {
+  list-style: none;
+  padding: 0;
+}
+.flip-back li {
+  color: #d0eaff;
+  font-size: 0.9rem;
+  margin-bottom: 6px;
+}
+
+/* Container for all flip cards */
+.flip-card-container {
+  display: flex;
+  flex-wrap: wrap;      /* wraps to next line if too many cards */
+  justify-content: center; /* centers horizontally */
+  gap: 20px;            /* space between cards */
+  padding: 20px;
+}
+
+/* General Navbar Styling */
+.navbar {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 50 !important;
+  backdrop-filter: blur(10px) !important;
+}
+
+/* Navbar inner container */
+.navbar > div:first-child {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  flex-wrap: wrap !important;
+  gap: 10px !important;
+  background-color: #1e40af !important; /* Tailwind blue-900 */
+  padding: 0.75rem 1.5rem !important;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important;
+}
+
+/* Left side: Govt Logo + Ministry */
+.navbar > div:first-child > img:first-child {
+  height: 50px !important;
+  width: auto !important;
+}
+
+.navbar > div:first-child > h1 {
+  font-size: 1.125rem !important; /* text-lg */
+  font-weight: bold !important;
+  margin-left: 0.5rem !important;
+}
+
+.navbar > div:first-child > p {
+  color: rgba(255,255,255,0.7) !important;
+  margin-left: 0.5rem !important;
+  font-size: 0.875rem !important; /* small text */
+}
+
+/* Right side: SDG Logos */
+.navbar > div:first-child > div {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.75rem !important;
+}
+
+.navbar > div:first-child > div img {
+  height: 40px !important;
+  width: auto !important;
+  border-radius: 0.25rem !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3) !important;
+}
+
+/* Inner centered container (Logo + Links) */
+.navbar .max-w-7xl {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  width: 100% !important;
+  margin: 0 auto !important;
+  padding: 0.75rem 1.5rem !important;
+}
+
+/* Logo + Title inside inner container */
+.navbar .max-w-7xl .flex.items-center.space-x-2 {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.5rem !important;
+}
+
+/* Desktop links */
+.navbar .max-w-7xl .hidden.md\\:flex {
+  display: flex !important;
+  gap: 2rem !important;
+}
+
+.navbar .max-w-7xl a {
+  color: #ffffff !important;
+  text-decoration: none !important;
+  transition: color 0.3s !important;
+}
+
+.navbar .max-w-7xl a:hover {
+  color: #93c5fd !important; /* Tailwind blue-200 */
+}
 </style>
 </head>
 <body class="text-white font-sans">
 
-  <!-- OFFICIAL GOVERNMENT BANNER -->
-  <div class="bg-blue-900 text-white py-3 px-6 flex items-center justify-between shadow-md sticky top-0 z-50">
-    <!-- Left side: Govt Logo + Ministry -->
-    <div class="flex items-center space-x-4">
-      <img src="static/logo.png" 
-           alt="Govt Logo" class="h-10 w-auto">
-      <div>
-        <h1 class="text-lg font-bold">FluoTrack</h1>
-        <p class="text-white opacity-50">Ministry Of Earth Sciences</p>
-      </div>
-    </div>
-
-    <!-- Right side: SDG Logos -->
-    <div class="flex items-center space-x-3">
-      <img src="static/sdg6.png" 
-           alt="SDG 6" class="h-10 w-auto rounded-md shadow">
-      <img src="static/sdg14.png" 
-           alt="SDG 14" class="h-10 w-auto rounded-md shadow">
-    </div>
+  <!-- Floating microplastic particles -->
+  <div id="particle-container">
+    <div class="microplastic"></div>
+    <div class="microplastic"></div>
+    <div class="microplastic"></div>
+    <div class="microplastic"></div>
+    <div class="microplastic"></div>
+    <div class="microplastic"></div>
+    <div class="microplastic"></div>
+    <div class="microplastic"></div>
+    <div class="microplastic"></div>
+    <div class="microplastic"></div>
+    <div class="microplastic"></div>
+    <div class="microplastic"></div>
+    <div class="microplastic"></div>
+    <div class="microplastic"></div>
+    <div class="microplastic"></div>
   </div>
 
 <body>
   <!-- NAVBAR -->
-  <nav class="navbar sticky top-0 z-50 backdrop-blur-md">
-    <div class="max-w-7xl mx-auto px-6 py-3">
-      <div class="flex items-center justify-between">
-        
-        <!-- Logo -->
-        <div class="flex items-center space-x-2">
-            <img src="static/logo.png" alt="Logo" class="h-8 w-8 object-contain">
-          <span class="text-xl font-bold">MicroPlastic Detector</span>
-        </div>
-        
-        <!-- Desktop Links -->
-        <div class="hidden md:flex space-x-8">
-          <a href="#dashboard" class="hover:text-blue-200 transition">Dashboard</a>
-          <a href="#impact" class="hover:text-blue-200 transition">Impact</a>
-          <a href="#contact" class="hover:text-blue-200 transition">Contact</a>
-        </div>
+<nav class="navbar sticky top-0 z-50 backdrop-blur-md">
+  <div class="bg-blue-900 text-white py-3 px-6 flex items-center justify-between shadow-md flex-wrap">
+    
+    <!-- LEFT: Govt Logo + Ministry -->
+    <div class="flex items-center space-x-2">
+      <img src="static/logo.png" alt="Govt Logo" class="h-10 w-auto">
+      <div class="flex flex-col">
+        <h1 class="text-lg font-bold">FluoTrack</h1>
+        <p class="text-white opacity-50 text-sm">Ministry Of Earth Sciences</p>
+      </div>
+    </div>
 
+    <!-- CENTER: Project Name -->
+    <div class="flex-1 flex justify-center">
+      <span class="text-xl font-bold">MicroPlastic Detector</span>
+    </div>
+
+    <!-- RIGHT: SDG Logos + Links + Login/Signup -->
+    <div class="flex items-center space-x-3">
+
+      <!-- SDG Logos -->
+      <div class="flex items-center space-x-2">
+        <img src="static/sdg6.png" alt="SDG 6" class="h-10 w-auto rounded-md shadow">
+        <img src="static/sdg14.png" alt="SDG 14" class="h-10 w-auto rounded-md shadow">
+      </div>
+
+      <!-- Desktop Links -->
+      <div class="hidden md:flex space-x-4">
+        <a href="#dashboard" class="hover:text-blue-200 transition">Dashboard</a>
+        <a href="#impact" class="hover:text-blue-200 transition">Impact</a>
+        <a href="#contact" class="hover:text-blue-200 transition">Contact</a>
         <!-- Auth Buttons -->
         <div class="flex items-center space-x-4" id="auth-buttons">
           <button id="login-btn" class="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-xl transition">
@@ -198,6 +1014,30 @@
             <i class="fas fa-bars text-xl"></i>
           </button>
         </div>
+      </div>
+
+      <!-- Mobile Menu (always visible as dropdown on small screens) -->
+      <div class="md:hidden flex flex-col space-y-1 mt-2">
+        <a href="#dashboard" class="block px-3 py-2 rounded hover:bg-blue-800">Dashboard</a>
+        <a href="#impact" class="block px-3 py-2 rounded hover:bg-blue-800">Impact</a>
+        <a href="#contact" class="block px-3 py-2 rounded hover:bg-blue-800">Contact</a>
+        <!-- Auth Buttons -->
+        <div class="flex items-center space-x-4" id="auth-buttons">
+          <button id="login-btn" class="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-xl transition">
+            <i class="fas fa-user mr-2"></i>Login
+          </button>
+          <button id="signup-btn" class="px-4 py-2 bg-blue-500 hover:bg-blue-600 rounded-xl transition">
+            <i class="fas fa-user-plus mr-2"></i>Sign Up
+          </button>
+          <!-- Mobile Menu Toggle -->
+          <button class="md:hidden" id="mobile-menu-btn">
+            <i class="fas fa-bars text-xl"></i>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
 
         <!-- User Menu (after login) -->
         <div class="hidden items-center space-x-4" id="user-menu">
@@ -296,11 +1136,27 @@
 
     <!-- WELCOME MESSAGE -->
     <div id="welcome-message" class="welcome-message animate-fadeInUp text-center border border-blue-300 rounded-2xl p-6">
-      <h2 class="text-2xl font-bold mb-2">Welcome to MicroPlastic Detector</h2>
+      <h2 class="text-2xl font-bold mb-2">Welcome to FluoTrack</h2>
+      <h2 class="text-2xl font-sans mb-10">Crafted with ❤️ by Elevators07</h2>
       <p class=" max-w-2xl mx-auto">
         Please log in or create an account to access the full features of our microplastic detection system.
       </p>
     </div>
+
+    <div class="section-particles">
+    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span>
+  </div>
 
     <!-- PROJECT INFO -->
     <section id="about" class="grid md:grid-cols-2 gap-8 mt-12">
@@ -337,6 +1193,21 @@
       </div>
     </section>
 
+    <div class="section-particles">
+    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span>
+  </div>
+
     <!-- PROJECT INFO SECTION --> <section id="project-info" class="grid md:grid-cols-2 gap-8 mt-12"> <!-- Card 1 --> <div class="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-6 shadow-lg"> <h3 class="text-xl font-semibold mb-3">🌍 Our Mission</h3> <p class=" leading-relaxed"> The <span class="font-bold">MicroPlastic Detector</span> initiative is designed to support environmental monitoring and scientific research. By providing affordable detection tools, we aim to strengthen public awareness and aid government institutions in addressing plastic pollution. </p> </div> <!-- Card 2 --> <div class="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-6 shadow-lg"> <h3 class="text-xl font-semibold mb-3">📊 Project Overview</h3> <p class="leading-relaxed"> This platform allows real-time microplastic particle detection, secure data logging, and transparent reporting for communities, researchers, and policymakers. The system supports environmental sustainability goals in line with <span class="font-bold">SDG 6 (Clean Water)</span> and <span class="font-bold">SDG 14 (Life Below Water)</span>. </p> </div> <!-- Card 3 --> <div class="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-6 shadow-lg"> <h3 class="text-xl font-semibold mb-3">🤝 Government Collaboration</h3> <p class=" leading-relaxed"> Developed with a vision for large-scale deployment, this system can assist local authorities, research institutes, and NGOs in monitoring water quality. It is aligned with <span class="font-bold">National Water Mission</span> objectives and global environmental protection frameworks. </p> </div> <!-- Card 4 --> <div class="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-6 shadow-lg"> <h3 class="text-xl font-semibold mb-3">🔒 Transparency & Accessibility</h3> <p class="leading-relaxed"> The platform is committed to transparency, open data access, and public participation. Citizens, schools, and communities can easily contribute to environmental data collection and access results for informed decision-making. </p> </div> </section>
 
     <!-- TECHNOLOGY -->
@@ -357,6 +1228,143 @@
         </div>
       </div>
     </section>
+    <div class="section-particles">
+    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span>
+  </div>
+
+    <section class="mt-24 px-6 md:px-16 relative overflow-hidden" id="initiatives">
+
+  <!-- Section Particles -->
+  <div class="section-particles">
+    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span>
+  </div>
+
+  <h2 class="text-3xl font-bold text-center text-white mb-12 fade-in">
+    🌍 National & Global Water Protection Initiatives
+  </h2>
+
+  <div class="flip-card-container mt-12">
+    <div class="flip-card">
+  <div class="flip-inner">
+
+    <!-- FRONT -->
+    <div class="flip-front">
+      <img src="static/assets/ocean_cleanup.jpg" alt="">
+      <span>The Ocean Cleanup</span>
+    </div>
+
+    <!-- BACK -->
+    <div class="flip-back">
+      <h3>Action Plan</h3>
+      <ul>
+        <li>✔ Optimize cleanup routes using our data</li>
+        <li>✔ Detect microplastic hotspots</li>
+        <li>✔ Support river plastic interception</li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+
+
+
+<div class="flip-card">
+  <div class="flip-inner">
+    <div class="flip-front">
+      <img src="static/assets/ganga.jpg" alt="">
+      <span>Namami Gange Mission</span>
+    </div>
+    <div class="flip-back">
+      <h3>Action Plan</h3>
+      <ul>
+        <li>✔ Track microplastics across Ganga</li>
+        <li>✔ Real-time pollution alerts</li>
+        <li>✔ Support zero-discharge goals</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+
+<div class="flip-card">
+  <div class="flip-inner">
+    <div class="flip-front">
+      <img src="static/assets/yap_program.jpg" alt="">
+      <span>Yamuna Action Plan (YAP)</span>
+    </div>
+    <div class="flip-back">
+      <h3>Action Plan</h3>
+      <ul>
+        <li>✔ Detect microplastics near drains</li>
+        <li>✔ STP effectiveness monitoring</li>
+        <li>✔ Water quality improvement proof</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+    <h2 class="text-3xl font-bold text-center text-white mb-12 fade-in">
+  🎯 Aligned Sustainable Development Goals
+</h2>
+
+<div class="gallery-container flex space-x-6 overflow-x-auto py-4 scrollbar-hide">
+  
+  <!-- SDG 6 -->
+  <div class="gallery-card relative flex-shrink-0 w-48 h-48 bg-gradient-to-br from-blue-500 to-blue-700 rounded-xl shadow-lg transform transition duration-300 hover:scale-105 hover:shadow-2xl">
+    <div class="absolute inset-0 rounded-xl bg-white/10 backdrop-blur-sm glow"></div>
+    <img src="static/assets/sdg6.png" alt="SDG 6" class="h-24 mx-auto mt-6">
+    <span class="block text-center mt-4 font-semibold text-white">SDG 6 – Clean Water</span>
+  </div>
+
+  <!-- SDG 14 -->
+  <div class="gallery-card relative flex-shrink-0 w-48 h-48 bg-gradient-to-br from-teal-500 to-teal-700 rounded-xl shadow-lg transform transition duration-300 hover:scale-105 hover:shadow-2xl">
+    <div class="absolute inset-0 rounded-xl bg-white/10 backdrop-blur-sm glow"></div>
+    <img src="static/assets/sdg14.png" alt="SDG 14" class="h-24 mx-auto mt-6">
+    <span class="block text-center mt-4 font-semibold text-white">SDG 14 – Life Below Water</span>
+  </div>
+
+</div>
+
+
+  </div>
+
+</section>
+<div class="section-particles">
+    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span>
+  </div>
 
         <!-- ROADMAP / UPDATES -->
     <section id="roadmap" class="mt-16">
@@ -410,7 +1418,7 @@
   <h2 class="text-2xl font-bold mb-6 text-center">📚 References</h2>
   <div class="grid md:grid-cols-1 gap-6 max-w-3xl mx-auto">
     <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-lg">
-      <h3 class="text-xl font-semibold mb-3">Useful Resources</h3>
+      <h3 class="font-bold mb-10" style="color:black;">Useful Resources</h3>
       <ul class="list-disc list-inside space-y-2 text-gray-700">
         <li><a href="https://www.unep.org/" target="_blank" class="text-blue-600 hover:underline">United Nations Environment Programme (UNEP)</a></li>
         <li><a href="https://www.who.int/" target="_blank" class="text-blue-600 hover:underline">World Health Organization (WHO)</a></li>
@@ -421,6 +1429,21 @@
     </div>
   </div>
 </section>
+
+<div class="section-particles">
+    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span><span></span>
+  </div>
 
     <!-- CONTACT -->
     <section id="contact" class="mt-16">
@@ -593,24 +1616,8 @@
             <div class="flex items-start">
               <i class="fas fa-map-marker-alt mt-1 mr-4 text-blue-300"></i>
               <div>
-                <p class="font-semibold">Address</p>
-                <p class="text-white/90">123 Environment Street, Eco City, 560001</p>
-              </div>
-            </div>
-            
-            <div class="flex items-start">
-              <i class="fas fa-envelope mt-1 mr-4 text-blue-300"></i>
-              <div>
-                <p class="font-semibold">Email</p>
-                <p class="text-white/90">contact@microplasticdetector.org</p>
-              </div>
-            </div>
-            
-            <div class="flex items-start">
-              <i class="fas fa-phone mt-1 mr-4 text-blue-300"></i>
-              <div>
-                <p class="font-semibold">Phone</p>
-                <p class="text-white/90">+91 98765 43210</p>
+                <p class="font-semibold">Elevators07</p>
+                <p class="text-white/90">Sri Sairam Engineering College</p>
               </div>
             </div>
           </div>
@@ -636,34 +1643,55 @@
   </div>
 
   <!-- FOOTER -->
-  <footer class="bg-black/30 mt-16 py-8 border-t border-white/10">
-    <div class="max-w-7xl mx-auto px-6">
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-        <div>
-          <div class="flex items-center space-x-2 mb-4">
-            <i class="fas fa-water text-2xl"></i>
-            <span class="text-xl font-bold">MicroPlastic Detector</span>
-          </div>
-          <p class="text-white/70">
-            Advanced technology for detecting microplastic particles in water samples.
-          </p>
+<footer class="bg-black/30 mt-16 py-12 border-t border-white/10">
+  <div class="max-w-7xl mx-auto px-6">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+
+      <!-- PROJECT INFO -->
+      <div>
+        <div class="flex items-center space-x-3 mb-4">
+          <i class="fas fa-water text-2xl text-blue-400"></i>
+          <span class="text-xl font-bold">MicroPlastic Detector</span>
         </div>
-        
-        <div>
-          <h4 class="text-lg font-semibold mb-4">Quick Links</h4>
-          <ul class="space-y-2">
-            <li><a href="#dashboard" class="text-white/70 hover:text-white transition">Dashboard</a></li>
-            <li><a href="#data" class="text-white/70 hover:text-white transition">Data Logs</a></li>
-            <li><a href="#about" class="text-white/70 hover:text-white transition">About Us</a></li>
-          </ul>
+        <p class="text-white/70 mb-4">
+          Advanced technology for detecting microplastic particles in water samples. Empowering research and environmental protection.
+        </p>
+        <div class="flex space-x-4">
+          <a href="#" class="text-white/70 hover:text-blue-400 transition"><i class="fab fa-facebook-f"></i></a>
+          <a href="#" class="text-white/70 hover:text-blue-400 transition"><i class="fab fa-twitter"></i></a>
+          <a href="#" class="text-white/70 hover:text-blue-400 transition"><i class="fab fa-linkedin-in"></i></a>
+          <a href="#" class="text-white/70 hover:text-blue-400 transition"><i class="fab fa-github"></i></a>
         </div>
       </div>
-      
-      <div class="border-t border-white/10 mt-8 pt-8 text-center text-white/60">
-        <p>© 2025 MicroPlastic Detector. All rights reserved.</p>
+
+      <!-- QUICK LINKS -->
+      <div>
+        <h4 class="text-lg font-semibold mb-4">Quick Links</h4>
+        <ul class="space-y-2">
+          <li><a href="#dashboard" class="text-white/70 hover:text-blue-400 transition">Dashboard</a></li>
+          <li><a href="#data" class="text-white/70 hover:text-blue-400 transition">Data Logs</a></li>
+          <li><a href="#about" class="text-white/70 hover:text-blue-400 transition">About Us</a></li>
+          <li><a href="#contact" class="text-white/70 hover:text-blue-400 transition">Contact</a></li>
+        </ul>
       </div>
+
+      <!-- TEAM INFO -->
+      <div>
+        <h4 class="text-lg font-semibold mb-4">Our Team</h4>
+        <p class="text-white/70 mb-4">
+          <span class="font-semibold">Elevators07</span> – A passionate team dedicated to innovative environmental solutions.
+        </p>
+      </div>
+
     </div>
-  </footer>
+
+    <!-- COPYRIGHT -->
+    <div class="border-t border-white/10 mt-12 pt-6 text-center text-white/60 text-sm">
+      <p>© 2025 MicroPlastic Detector. All rights reserved. Crafted with ❤️ by <span class="font-semibold">Elevators07</span>.</p>
+    </div>
+  </div>
+</footer>
+
 
 <script>
 /* ----------------------
