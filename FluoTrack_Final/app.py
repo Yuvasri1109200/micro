@@ -1,8 +1,42 @@
 from flask import Flask, request, jsonify, send_from_directory, session
 from db import get_connection
+from ultralytics import YOLO
+import cv2
+import os
+import uuid
 
+yolo_model = YOLO("yolov8n.pt")  # your trained model
 app = Flask(__name__)
 app.secret_key = 'supersecret'
+
+@app.route("/api/yolo_detect", methods=["POST"])
+def yolo_detect():
+    try:
+        # Get uploaded image
+        file = request.files["image"]
+        filename = f"{uuid.uuid4()}.jpg"
+        filepath = os.path.join("static", "uploads", filename)
+        os.makedirs("static/uploads", exist_ok=True)
+        file.save(filepath)
+
+        # Run YOLO detection
+        results = yolo_model.predict(filepath)[0]
+
+        # Count detections
+        particle_count = len(results.boxes)
+
+        # Draw boxes on image
+        annotated_path = os.path.join("static", "outputs", filename)
+        os.makedirs("static/outputs", exist_ok=True)
+        results.save(filename=annotated_path)
+
+        return jsonify({
+            "count": particle_count,
+            "image_url": f"/static/outputs/{filename}"
+        })
+
+    except Exception as e:
+        return jsonify({"error": str(e)})
 
 # ------------------ USER AUTH ------------------
 
